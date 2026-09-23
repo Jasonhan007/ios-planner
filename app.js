@@ -374,7 +374,7 @@
       if (dayTasks.length) {
         const pending = dayTasks.filter((t) => !t.done);
         const pool = pending.length ? pending : dayTasks;
-        const show = pool.slice(0, 2);
+        const show = pool.slice(0, 1);
         const more = pool.length - show.length;
         const label = show.map((t) => escapeHtml(t.title)).join(' · ');
         const moreHtml = more > 0 ? ` <span class="more">+${more}</span>` : '';
