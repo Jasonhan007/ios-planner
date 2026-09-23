@@ -7,7 +7,7 @@
   const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 12.5 10.2 16.2 17.5 8.5"/></svg>';
   const TRASH_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10M10 7V5.5A1.5 1.5 0 0 1 11.5 4h1A1.5 1.5 0 0 1 14 5.5V7M8.5 7l.7 11a1.5 1.5 0 0 0 1.5 1.4h2.6a1.5 1.5 0 0 0 1.5-1.4L15.5 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  /** @type {{ goals: Array<{id:string,title:string,desc:string,deadline:string,color:string,createdAt:string}>, tasks: Array<{id:string,title:string,date:string,done:boolean,createdAt:string}>, view: string, calCursor: Date|null, selectedDate: string|null, goalColor: string, openGoalId: string|null }} */
+  /** @type {{ goals: Array<{id:string,title:string,desc:string,deadline:string,color:string,createdAt:string}>, tasks: Array<{id:string,title:string,date:string,done:boolean,createdAt:string}>, view: string, calCursor: Date|null, selectedDate: string|null, goalColor: string, openGoalId: string|null, calMode: 'month'|'week' }} */
   const state = {
     goals: [],
     tasks: [],
@@ -16,6 +16,7 @@
     selectedDate: null,
     goalColor: '#007AFF',
     openGoalId: null,
+    calMode: 'month',
   };
 
   // ---------- utils ----------
@@ -54,6 +55,24 @@
   }
 
   const weekdayCN = (d) => ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+
+  /** 周一为一周第一天 */
+  function startOfWeek(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const offset = (x.getDay() + 6) % 7;
+    x.setDate(x.getDate() - offset);
+    return x;
+  }
+
+  function weekDays(anchor) {
+    const start = startOfWeek(anchor || new Date());
+    const list = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      list.push(d);
+    }
+    return list;
+  }
 
   function escapeHtml(str) {
     return String(str)
@@ -300,19 +319,32 @@
   }
 
   // ---------- calendar ----------
+  function setCalMode(mode) {
+    state.calMode = mode === 'week' ? 'week' : 'month';
+    const isMonth = state.calMode === 'month';
+    document.querySelectorAll('[data-cal-mode]').forEach((btn) => {
+      const on = btn.dataset.calMode === state.calMode;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    $('cal-grid').hidden = !isMonth;
+    $('cal-weekdays').hidden = !isMonth;
+    $('week-view').hidden = isMonth;
+    renderCalendar(true);
+  }
+
   function renderCalendar(switchAnim) {
+    if (state.calMode === 'week') {
+      renderWeekView(switchAnim);
+      renderSelectedDay();
+      return;
+    }
+
     const cursor = state.calCursor;
     const y = cursor.getFullYear();
     const m = cursor.getMonth();
     $('cal-month-label').textContent = y + '年' + (m + 1) + '月';
-    const todayChip = $('cal-toolbar-today');
-    if (todayChip) {
-      const now = new Date();
-      const onTodayMonth = now.getFullYear() === y && now.getMonth() === m;
-      const onTodayDate = state.selectedDate === todayStr();
-      todayChip.classList.toggle('is-today', onTodayMonth && onTodayDate);
-      todayChip.textContent = onTodayMonth && onTodayDate ? '已在今天' : '今天';
-    }
+    updateTodayChip();
 
     const grid = $('cal-grid');
     const first = new Date(y, m, 1);
@@ -379,6 +411,84 @@
     }
 
     renderSelectedDay();
+  }
+
+  function updateTodayChip() {
+    const todayChip = $('cal-toolbar-today');
+    if (!todayChip) return;
+    const now = new Date();
+    const anchor = state.calMode === 'week' ? startOfWeek(now) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const cursor = state.calMode === 'week' ? startOfWeek(state.calCursor || now) : state.calCursor;
+    const same =
+      cursor.getFullYear() === anchor.getFullYear() &&
+      cursor.getMonth() === anchor.getMonth() &&
+      cursor.getDate() === anchor.getDate();
+    const onTodayDate = state.selectedDate === todayStr();
+    const active = same && onTodayDate;
+    todayChip.classList.toggle('is-today', active);
+    todayChip.textContent = active ? '已在今天' : '今天';
+  }
+
+  function renderWeekView(switchAnim) {
+    const anchor = state.calCursor || new Date();
+    const days = weekDays(anchor);
+    const first = days[0];
+    const last = days[6];
+    const sameMonth = first.getMonth() === last.getMonth();
+    $('cal-month-label').textContent = sameMonth
+      ? first.getFullYear() + '年' + (first.getMonth() + 1) + '月'
+      : formatShort(toDateStr(first)) + ' – ' + formatShort(toDateStr(last));
+
+    updateTodayChip();
+
+    const td = todayStr();
+    const sel = state.selectedDate;
+    const goalSet = new Set(state.goals.map((g) => g.deadline));
+
+    let total = 0;
+    let done = 0;
+    let goalCount = 0;
+
+    const cards = days
+      .map((d, i) => {
+        const ds = toDateStr(d);
+        const list = state.tasks.filter((t) => t.date === ds);
+        const dDone = list.filter((t) => t.done).length;
+        total += list.length;
+        done += dDone;
+        const hasGoal = goalSet.has(ds);
+        if (hasGoal) goalCount += 1;
+        const pct = list.length ? Math.round((dDone / list.length) * 100) : 0;
+        const isToday = ds === td;
+        const isSel = ds === sel;
+        const label = i === 0 || d.getDate() === 1 ? weekdayCN(d) : weekdayCN(d);
+        return `
+          <button type="button" class="week-day ${isToday ? 'today' : ''} ${isSel ? 'selected' : ''}"
+            data-date="${ds}" role="listitem" aria-label="${d.getMonth() + 1}月${d.getDate()}日 星期${weekdayCN(d)}，${dDone}/${list.length} 完成"
+            style="animation-delay:${i * 0.03}s">
+            <span class="wd-label">${label}</span>
+            <span class="wd-num">${d.getDate()}</span>
+            <span class="wd-bar ${list.length && dDone === list.length ? 'full' : ''}"><i style="width:${pct}%"></i></span>
+            <span class="wd-count ${list.length && dDone === list.length && list.length ? 'done' : ''}"><strong>${dDone}</strong>/${list.length}</span>
+            <span class="wd-goal" ${hasGoal ? '' : 'hidden'} title="有目标截止"></span>
+          </button>`;
+      })
+      .join('');
+
+    $('week-days').innerHTML = cards;
+    const pctAll = total ? Math.round((done / total) * 100) : 0;
+    $('week-stats').innerHTML = `
+      <span class="chip blue">本周任务 ${done}/${total}</span>
+      <span class="chip ${total && done === total ? 'green' : 'blue'}">完成率 ${pctAll}%</span>
+      ${goalCount ? `<span class="chip orange">截止 ${goalCount} 个目标</span>` : ''}
+    `;
+
+    if (switchAnim) {
+      const el = $('week-view');
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    }
   }
 
   function renderSelectedDay() {
@@ -560,7 +670,146 @@
     }
   }
 
-  // ---------- goal ops ----------
+  function selectDate(ds) {
+    state.selectedDate = ds;
+    const d = parseDateStr(ds);
+    if (state.calMode === 'week') {
+      state.calCursor = d;
+    } else if (!state.calCursor || d.getMonth() !== state.calCursor.getMonth() || d.getFullYear() !== state.calCursor.getFullYear()) {
+      state.calCursor = new Date(d.getFullYear(), d.getMonth(), 1);
+    }
+    renderCalendar(false);
+  }
+
+  // ---------- browser notifications ----------
+  const NOTIFY_KEY = 'ios-planner-notify-seen';
+  let notifyTimer = null;
+
+  function notifySupported() {
+    return typeof Notification !== 'undefined';
+  }
+
+  function notifyPerm() {
+    return notifySupported() ? Notification.permission : 'unsupported';
+  }
+
+  function updateNotifyUI() {
+    const btn = $('notify-toggle');
+    const label = $('notify-label');
+    if (!btn || !label) return;
+    const perm = notifyPerm();
+    btn.classList.remove('on', 'blocked');
+    if (perm === 'granted') {
+      btn.classList.add('on');
+      label.textContent = '通知已开';
+      btn.title = '目标截止 / 今日待办会在页面打开时提醒';
+    } else if (perm === 'denied' || perm === 'unsupported' || (location.protocol !== 'https:' && location.protocol !== 'http:')) {
+      if (location.protocol === 'file:') {
+        label.textContent = '需在线开启通知';
+        btn.title = '本地 file:// 无法通知，请用在线地址或本地服务器';
+      } else {
+        btn.classList.add('blocked');
+        label.textContent = '通知被阻止';
+        btn.title = '请在浏览器地址栏允许通知';
+      }
+    } else {
+      label.textContent = '开启通知';
+      btn.title = '允许浏览器通知以提醒截止与待办';
+    }
+  }
+
+  async function enableNotifications() {
+    if (!notifySupported()) {
+      toast('当前浏览器不支持通知');
+      return;
+    }
+    if (location.protocol === 'file:') {
+      toast('请用在线地址开启通知');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      updateNotifyUI();
+      fireReminders(true);
+      toast('通知已开启');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      updateNotifyUI();
+      toast('通知已被拒绝，请在浏览器设置中允许');
+      return;
+    }
+    try {
+      const res = await Notification.requestPermission();
+      updateNotifyUI();
+      if (res === 'granted') {
+        toast('通知已开启');
+        fireReminders(true);
+      } else {
+        toast('未授予通知权限');
+      }
+    } catch (e) {
+      console.warn(e);
+      toast('无法请求通知权限');
+    }
+  }
+
+  function showNotification(title, body) {
+    if (!notifySupported() || Notification.permission !== 'granted') return false;
+    try {
+      const n = new Notification(title, {
+        body,
+        tag: 'ios-planner',
+        icon: 'icon-256.png',
+        badge: 'favicon-32.png',
+      });
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
+      return true;
+    } catch (e) {
+      console.warn(e);
+      return false;
+    }
+  }
+
+  /** 收集需要提醒的内容；force 时忽略当天已提醒标记 */
+  function fireReminders(force) {
+    if (!notifySupported() || Notification.permission !== 'granted') return;
+    const td = todayStr();
+    const tm = toDateStr(new Date(Date.now() + 86400000));
+    const seenRaw = localStorage.getItem(NOTIFY_KEY);
+    const seen = seenRaw ? JSON.parse(seenRaw) : {};
+    const dayKey = td;
+
+    if (!force && seen.day === dayKey && seen.goals) return;
+
+    const parts = [];
+    const dueToday = state.goals.filter((g) => g.deadline === td);
+    const dueTomorrow = state.goals.filter((g) => g.deadline === tm);
+    const overdue = state.goals.filter((g) => daysBetween(td, g.deadline) < 0);
+    const pendingToday = state.tasks.filter((t) => t.date === td && !t.done);
+
+    if (dueToday.length) parts.push('今日截止：' + dueToday.map((g) => g.title).join('、'));
+    if (dueTomorrow.length) parts.push('明日截止：' + dueTomorrow.map((g) => g.title).join('、'));
+    if (overdue.length) parts.push('已逾期 ' + overdue.length + ' 个目标');
+    if (pendingToday.length) parts.push('今日还有 ' + pendingToday.length + ' 项未完成');
+
+    if (!parts.length) {
+      if (force) toast('暂无需要提醒的内容');
+      localStorage.setItem(NOTIFY_KEY, JSON.stringify({ day: dayKey, goals: true }));
+      return;
+    }
+
+    showNotification('计划表提醒', parts.join(' · '));
+    localStorage.setItem(NOTIFY_KEY, JSON.stringify({ day: dayKey, goals: true }));
+    if (force) toast('已发送提醒');
+  }
+
+  function startNotifyTimer() {
+    if (notifyTimer) clearInterval(notifyTimer);
+    notifyTimer = setInterval(() => fireReminders(false), 60000);
+  }
   function addGoal({ title, desc, deadline, color }) {
     if (!title.trim()) {
       toast('请输入目标名称');
@@ -670,6 +919,7 @@
 
     $('clear-done-home').addEventListener('click', () => clearCompleted('all'));
     $('clear-done-cal').addEventListener('click', () => clearCompleted('date', state.selectedDate || todayStr()));
+    $('notify-toggle').addEventListener('click', () => enableNotifications());
 
     $('cal-task-form').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -695,16 +945,26 @@
     });
 
     $('cal-prev').addEventListener('click', () => {
-      state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() - 1, 1);
+      if (state.calMode === 'week') {
+        const a = state.calCursor || new Date();
+        state.calCursor = new Date(a.getFullYear(), a.getMonth(), a.getDate() - 7);
+      } else {
+        state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() - 1, 1);
+      }
       renderCalendar(true);
     });
     $('cal-next').addEventListener('click', () => {
-      state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() + 1, 1);
+      if (state.calMode === 'week') {
+        const a = state.calCursor || new Date();
+        state.calCursor = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7);
+      } else {
+        state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() + 1, 1);
+      }
       renderCalendar(true);
     });
     const goToday = () => {
       const n = new Date();
-      state.calCursor = new Date(n.getFullYear(), n.getMonth(), 1);
+      state.calCursor = state.calMode === 'week' ? n : new Date(n.getFullYear(), n.getMonth(), 1);
       state.selectedDate = todayStr();
       renderCalendar(true);
       toast('已回到今天');
@@ -712,15 +972,19 @@
     $('cal-goto-today').addEventListener('click', goToday);
     $('cal-toolbar-today').addEventListener('click', goToday);
 
+    document.querySelectorAll('[data-cal-mode]').forEach((btn) => {
+      btn.addEventListener('click', () => setCalMode(btn.dataset.calMode));
+    });
+
     $('cal-grid').addEventListener('click', (e) => {
       const cell = e.target.closest('[data-date]');
       if (!cell) return;
-      state.selectedDate = cell.dataset.date;
-      const d = parseDateStr(state.selectedDate);
-      if (d.getMonth() !== state.calCursor.getMonth() || d.getFullYear() !== state.calCursor.getFullYear()) {
-        state.calCursor = new Date(d.getFullYear(), d.getMonth(), 1);
-      }
-      renderCalendar(false);
+      selectDate(cell.dataset.date);
+    });
+    $('week-days').addEventListener('click', (e) => {
+      const cell = e.target.closest('[data-date]');
+      if (!cell) return;
+      selectDate(cell.dataset.date);
     });
 
     $('open-goal-modal').addEventListener('click', openGoalModal);
@@ -774,6 +1038,16 @@
     bindEvents();
     renderAll();
     navigate('home');
+    updateNotifyUI();
+    startNotifyTimer();
+    if (notifySupported() && Notification.permission === 'granted') {
+      setTimeout(() => fireReminders(false), 800);
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && notifySupported() && Notification.permission === 'granted') {
+        fireReminders(false);
+      }
+    });
   }
 
   if (document.readyState === 'loading') {
