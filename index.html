@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#F2F2F7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>计划 · Plan</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- 主页 -->
+    <section class="view active" id="view-home" data-view="home">
+      <header class="page-header">
+        <div class="header-row">
+          <div class="header-text">
+            <p class="eyebrow" id="home-eyebrow">今天</p>
+            <h1 class="large-title" id="home-title">计划</h1>
+          </div>
+          <div class="kaoyan-badge" id="kaoyan-badge" title="2026 年考研初试倒计时">
+            <span class="kaoyan-label">考研</span>
+            <div class="kaoyan-days-row">
+              <span class="kaoyan-days" id="kaoyan-days">—</span>
+              <span class="kaoyan-unit">天</span>
+            </div>
+            <span class="kaoyan-date">2026.12.19</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="scroll">
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-value" id="stat-goals">0</span>
+            <span class="stat-label">进行中目标</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="stat-today">0</span>
+            <span class="stat-label">今日任务</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value accent" id="stat-done">0</span>
+            <span class="stat-label">已完成</span>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2>目标倒计时</h2>
+          <button class="text-btn" type="button" data-nav="goals">全部</button>
+        </div>
+        <div class="countdown-strip" id="home-countdowns"></div>
+
+        <div class="section-head">
+          <h2>今日任务</h2>
+          <span class="section-meta" id="today-date-label"></span>
+        </div>
+        <div class="card list-card">
+          <form class="task-composer" id="home-task-form">
+            <input type="text" id="home-task-input" placeholder="添加今日任务…" maxlength="80" autocomplete="off">
+            <button type="submit" class="add-btn" aria-label="添加任务">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            </button>
+          </form>
+          <ul class="task-list" id="home-task-list"></ul>
+          <p class="empty-hint" id="home-task-empty" hidden>今天还没有任务，添加一条吧</p>
+        </div>
+
+        <div class="section-head">
+          <h2>最近截止</h2>
+        </div>
+        <div class="card deadline-card" id="deadline-card"></div>
+      </div>
+    </section>
+
+    <!-- 日历 -->
+    <section class="view" id="view-calendar" data-view="calendar">
+      <header class="page-header">
+        <p class="eyebrow">日程</p>
+        <h1 class="large-title">日历</h1>
+      </header>
+
+      <div class="scroll">
+        <div class="card calendar-card">
+          <div class="cal-toolbar">
+            <div class="cal-toolbar-side">
+              <button type="button" class="icon-btn" id="cal-prev" aria-label="上个月">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="today-chip" id="cal-toolbar-today" aria-label="快速回到今天">今天</button>
+            </div>
+            <div class="cal-month" id="cal-month-label"></div>
+            <div class="cal-toolbar-side end">
+              <button type="button" class="icon-btn" id="cal-next" aria-label="下个月">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="cal-weekdays" aria-hidden="true">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div class="cal-grid" id="cal-grid" role="grid"></div>
+        </div>
+
+        <div class="section-head">
+          <h2 id="cal-day-title">当日安排</h2>
+          <button class="text-btn" type="button" id="cal-goto-today">回到今天</button>
+        </div>
+        <div class="card list-card">
+          <div class="day-summary" id="cal-day-summary"></div>
+          <form class="task-composer" id="cal-task-form">
+            <input type="text" id="cal-task-input" placeholder="为这一天添加任务…" maxlength="80" autocomplete="off">
+            <button type="submit" class="add-btn" aria-label="添加任务">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            </button>
+          </form>
+          <ul class="task-list" id="cal-task-list"></ul>
+          <p class="empty-hint" id="cal-task-empty" hidden>这一天没有任务</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 目标 -->
+    <section class="view" id="view-goals" data-view="goals">
+      <header class="page-header">
+        <p class="eyebrow">目标与截止</p>
+        <h1 class="large-title">目标</h1>
+      </header>
+
+      <div class="scroll">
+        <div class="section-head">
+          <h2>全部目标</h2>
+          <button class="text-btn pill-btn" type="button" id="open-goal-modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            新建
+          </button>
+        </div>
+        <div class="goal-list" id="goal-list"></div>
+        <p class="empty-hint block" id="goals-empty" hidden>还没有目标，点「新建」创建一个</p>
+      </div>
+    </section>
+
+    <!-- 液态玻璃 Dock -->
+    <nav class="tab-bar" aria-label="主导航">
+      <button type="button" class="tab active" data-nav="home" aria-current="page">
+        <svg class="tab-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <path d="M5.5 12.2 14 5.5l8.5 6.7V21a1.5 1.5 0 0 1-1.5 1.5h-4.2v-6.2h-5.6v6.2H7A1.5 1.5 0 0 1 5.5 21v-8.8Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        </svg>
+        <span>主页</span>
+      </button>
+      <button type="button" class="tab" data-nav="calendar">
+        <svg class="tab-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <rect x="5" y="7" width="18" height="16.5" rx="3" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M5 11.5h18M10 4.5v4M18 4.5v4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          <circle cx="10.5" cy="16" r="1.15" fill="currentColor"/>
+          <circle cx="14" cy="16" r="1.15" fill="currentColor"/>
+          <circle cx="17.5" cy="16" r="1.15" fill="currentColor"/>
+          <circle cx="10.5" cy="19.5" r="1.15" fill="currentColor"/>
+          <circle cx="14" cy="19.5" r="1.15" fill="currentColor"/>
+        </svg>
+        <span>日历</span>
+      </button>
+      <button type="button" class="tab" data-nav="goals">
+        <svg class="tab-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="9.25" stroke="currentColor" stroke-width="1.75"/>
+          <circle cx="14" cy="14" r="5.25" stroke="currentColor" stroke-width="1.75"/>
+          <circle cx="14" cy="14" r="1.6" fill="currentColor"/>
+        </svg>
+        <span>目标</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 新建目标 -->
+  <div class="modal-root" id="goal-modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title">
+      <div class="sheet-handle"></div>
+      <h2 id="goal-modal-title">新建目标</h2>
+      <form id="goal-form" class="sheet-form">
+        <label class="field">
+          <span>目标名称</span>
+          <input type="text" id="goal-title" placeholder="例如：完成期末复习" maxlength="40" required>
+        </label>
+        <label class="field">
+          <span>备注（可选）</span>
+          <input type="text" id="goal-desc" placeholder="简要说明" maxlength="80">
+        </label>
+        <label class="field">
+          <span>截止日期</span>
+          <input type="date" id="goal-deadline" required>
+        </label>
+        <div class="field">
+          <span>颜色</span>
+          <div class="color-row" id="color-row" role="radiogroup" aria-label="选择颜色">
+            <button type="button" class="color-dot selected" data-color="#007AFF" style="--c:#007AFF" aria-label="蓝" aria-checked="true"></button>
+            <button type="button" class="color-dot" data-color="#34C759" style="--c:#34C759" aria-label="绿" aria-checked="false"></button>
+            <button type="button" class="color-dot" data-color="#FF9500" style="--c:#FF9500" aria-label="橙" aria-checked="false"></button>
+            <button type="button" class="color-dot" data-color="#FF3B30" style="--c:#FF3B30" aria-label="红" aria-checked="false"></button>
+            <button type="button" class="color-dot" data-color="#AF52DE" style="--c:#AF52DE" aria-label="紫" aria-checked="false"></button>
+            <button type="button" class="color-dot" data-color="#5AC8FA" style="--c:#5AC8FA" aria-label="青" aria-checked="false"></button>
+          </div>
+        </div>
+        <div class="sheet-actions">
+          <button type="button" class="btn secondary" data-close-modal>取消</button>
+          <button type="submit" class="btn primary">创建</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 目标详情 -->
+  <div class="modal-root" id="detail-modal" hidden>
+    <div class="modal-backdrop" data-close-detail></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <div class="sheet-handle"></div>
+      <div class="detail-hero" id="detail-hero"></div>
+      <h2 id="detail-title"></h2>
+      <p class="detail-desc" id="detail-desc"></p>
+      <div class="detail-meta" id="detail-meta"></div>
+      <div class="sheet-actions">
+        <button type="button" class="btn danger" id="detail-delete">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10M10 7V5.5A1.5 1.5 0 0 1 11.5 4h1A1.5 1.5 0 0 1 14 5.5V7M8.5 7l.7 11a1.5 1.5 0 0 0 1.5 1.4h2.6a1.5 1.5 0 0 0 1.5-1.4L15.5 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          删除目标
+        </button>
+        <button type="button" class="btn primary" data-close-detail>完成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
