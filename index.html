@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>计划 · Plan</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -54,7 +57,13 @@
 
         <div class="section-head">
           <h2>今日任务</h2>
-          <span class="section-meta" id="today-date-label"></span>
+          <div class="section-actions">
+            <span class="section-meta" id="today-date-label"></span>
+            <button class="clear-done-btn" type="button" id="clear-done-home" title="一键删除所有已完成任务">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.2 16.7 19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              清理已完成
+            </button>
+          </div>
         </div>
         <div class="card list-card">
           <form class="task-composer" id="home-task-form">
@@ -104,7 +113,13 @@
         </div>
 
         <div class="section-head">
-          <h2 id="cal-day-title">当日安排</h2>
+          <div class="section-head-main">
+            <h2 id="cal-day-title">当日安排</h2>
+            <button class="clear-done-btn" type="button" id="clear-done-cal" title="清理这一天的已完成任务">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.2 16.7 19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              清理已完成
+            </button>
+          </div>
           <button class="text-btn" type="button" id="cal-goto-today">回到今天</button>
         </div>
         <div class="card list-card">
