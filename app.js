@@ -456,6 +456,7 @@
     renderHome();
     renderCalendar(false);
     renderGoals();
+    refreshClearBtns();
   }
 
   // ---------- navigation ----------
@@ -517,6 +518,45 @@
       setTimeout(finish, 200);
     } else {
       finish();
+    }
+  }
+
+  /** 清理已完成：scope = 'all' | 'today' | 'date' */
+  function clearCompleted(scope, date) {
+    const match = (t) => {
+      if (!t.done) return false;
+      if (scope === 'all') return true;
+      if (scope === 'today') return t.date === todayStr();
+      if (scope === 'date') return t.date === date;
+      return false;
+    };
+    const before = state.tasks.length;
+    state.tasks = state.tasks.filter((t) => !match(t));
+    const removed = before - state.tasks.length;
+    if (removed === 0) {
+      toast(scope === 'all' ? '没有已完成任务' : '这一天没有已完成任务');
+      return;
+    }
+    save();
+    renderAll();
+    toast('已清理 ' + removed + ' 项已完成');
+  }
+
+  function refreshClearBtns() {
+    const doneAll = state.tasks.filter((t) => t.done).length;
+    const btnHome = $('clear-done-home');
+    const btnCal = $('clear-done-cal');
+    if (btnHome) {
+      btnHome.disabled = doneAll === 0;
+      btnHome.classList.toggle('is-empty', doneAll === 0);
+      btnHome.title = doneAll === 0 ? '暂无已完成任务' : '一键删除全部已完成任务（' + doneAll + '）';
+    }
+    if (btnCal) {
+      const ds = state.selectedDate || todayStr();
+      const dayDone = state.tasks.filter((t) => t.done && t.date === ds).length;
+      btnCal.disabled = dayDone === 0;
+      btnCal.classList.toggle('is-empty', dayDone === 0);
+      btnCal.title = dayDone === 0 ? '这一天没有已完成任务' : '清理这一天已完成（' + dayDone + '）';
     }
   }
 
@@ -627,6 +667,9 @@
       const input = $('home-task-input');
       if (addTask(input.value, todayStr())) input.value = '';
     });
+
+    $('clear-done-home').addEventListener('click', () => clearCompleted('all'));
+    $('clear-done-cal').addEventListener('click', () => clearCompleted('date', state.selectedDate || todayStr()));
 
     $('cal-task-form').addEventListener('submit', (e) => {
       e.preventDefault();
