@@ -260,6 +260,50 @@ button:focus:not(:focus-visible) { outline: none; }
   font-weight: 500;
 }
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.section-head-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.clear-done-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(52, 199, 89, 0.14);
+  border: 1px solid rgba(52, 199, 89, 0.22);
+  border-radius: 999px;
+  padding: 6px 11px 6px 8px;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform 0.2s var(--ease-bounce), background 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 4px rgba(52, 199, 89, 0.1);
+}
+.clear-done-btn svg { width: 14px; height: 14px; }
+.clear-done-btn:hover:not(:disabled) {
+  background: rgba(52, 199, 89, 0.22);
+  box-shadow: 0 3px 10px rgba(52, 199, 89, 0.18);
+}
+.clear-done-btn:active:not(:disabled) { transform: scale(0.94); }
+.clear-done-btn:disabled,
+.clear-done-btn.is-empty {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}
+
 .text-btn {
   font-size: 15px;
   font-weight: 600;
