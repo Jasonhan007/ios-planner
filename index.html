@@ -1,3 +1,4 @@
+<!-- AI生成 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -13,6 +14,8 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<p data-aigc-mark="1" style="margin:0 0 8px;font-size:10px;line-height:1.3;color:#6b6560;font-weight:400;">AI生成</p>
+
   <div class="app">
     <!-- 主页 -->
     <section class="view active" id="view-home" data-view="home">
@@ -30,6 +33,12 @@
             </div>
             <span class="kaoyan-date">2026.12.19</span>
           </div>
+        </div>
+        <div class="header-sub">
+          <button type="button" class="notify-chip" id="notify-toggle" title="浏览器通知提醒">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a5 5 0 0 0-5 5v2.2c0 .7-.3 1.4-.8 1.9L5 14.5h14l-1.2-1.4a2.7 2.7 0 0 1-.8-1.9V9a5 5 0 0 0-5-5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 17a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <span id="notify-label">开启通知</span>
+          </button>
         </div>
       </header>
 
@@ -94,22 +103,32 @@
         <div class="card calendar-card">
           <div class="cal-toolbar">
             <div class="cal-toolbar-side">
-              <button type="button" class="icon-btn" id="cal-prev" aria-label="上个月">
+              <button type="button" class="icon-btn" id="cal-prev" aria-label="上一项">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <button type="button" class="today-chip" id="cal-toolbar-today" aria-label="快速回到今天">今天</button>
             </div>
-            <div class="cal-month" id="cal-month-label"></div>
+            <div class="cal-toolbar-mid">
+              <div class="cal-month" id="cal-month-label"></div>
+              <div class="seg-control" role="tablist" aria-label="日历视图">
+                <button type="button" class="seg-btn active" id="seg-month" data-cal-mode="month" role="tab" aria-selected="true">月</button>
+                <button type="button" class="seg-btn" id="seg-week" data-cal-mode="week" role="tab" aria-selected="false">周</button>
+              </div>
+            </div>
             <div class="cal-toolbar-side end">
-              <button type="button" class="icon-btn" id="cal-next" aria-label="下个月">
+              <button type="button" class="icon-btn" id="cal-next" aria-label="下一项">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             </div>
           </div>
-          <div class="cal-weekdays" aria-hidden="true">
+          <div class="cal-weekdays" id="cal-weekdays" aria-hidden="true">
             <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
           </div>
           <div class="cal-grid" id="cal-grid" role="grid"></div>
+          <div class="week-view" id="week-view" hidden>
+            <div class="week-stats" id="week-stats"></div>
+            <div class="week-days" id="week-days" role="list"></div>
+          </div>
         </div>
 
         <div class="section-head">
