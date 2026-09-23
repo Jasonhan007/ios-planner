@@ -603,7 +603,7 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* ===== 日历 ===== */
 .calendar-card {
-  padding: 12px 10px 14px;
+  padding: 8px 8px 10px;
   animation: riseIn 0.4s var(--ease-spring) both;
 }
 
@@ -612,7 +612,7 @@ button:focus:not(:focus-visible) { outline: none; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 2px 6px 10px;
+  padding: 2px 4px 6px;
 }
 .cal-toolbar-side {
   display: flex;
@@ -846,10 +846,10 @@ button:focus:not(:focus-visible) { outline: none; }
 }
 .cal-weekdays span {
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--muted);
-  padding: 6px 0;
+  padding: 4px 0;
 }
 
 .cal-grid.switching { animation: monthSwipe 0.28s var(--ease-spring); }
@@ -858,16 +858,16 @@ button:focus:not(:focus-visible) { outline: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  border-radius: 12px;
-  font-size: 14px;
+  gap: 2px;
+  border-radius: 10px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
   color: var(--ink);
   position: relative;
   transition: background 0.18s ease, transform 0.2s var(--ease-bounce);
-  min-height: 76px;
-  padding: 6px 3px 8px;
+  min-height: 52px;
+  padding: 4px 2px 5px;
   text-align: center;
 }
 .cal-day:hover { background: var(--fill-2); }
@@ -882,54 +882,57 @@ button:focus:not(:focus-visible) { outline: none; }
 .cal-day.selected .cal-num {
   background: linear-gradient(180deg, #2B95FF, var(--blue));
   color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+  box-shadow: 0 3px 10px rgba(0, 122, 255, 0.35);
 }
 .cal-day.selected .dot { background: var(--blue) !important; }
 .cal-day.selected .cal-preview { color: var(--blue); font-weight: 600; }
 
 .cal-num {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   line-height: 1;
   flex-shrink: 0;
+  font-size: 13px;
   transition: background 0.2s var(--ease-bounce), color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cal-preview {
   width: 100%;
-  font-size: 10px;
-  line-height: 1.25;
+  font-size: 9px;
+  line-height: 1.15;
   font-weight: 500;
   color: var(--muted);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-all;
-  min-height: 1.25em;
+  min-height: 1.15em;
   padding: 0 1px;
+  letter-spacing: -0.02em;
 }
 .cal-preview.has-task { color: var(--ink-2); }
 .cal-preview .more {
   color: var(--blue);
   font-weight: 700;
+  font-size: 9px;
 }
 
 .cal-day .dots {
   display: flex;
   gap: 3px;
-  height: 5px;
+  height: 4px;
   align-items: center;
 }
 .cal-day .dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--orange);
-  box-shadow: 0 0 4px rgba(255, 149, 0, 0.45);
+  box-shadow: 0 0 3px rgba(255, 149, 0, 0.45);
 }
 
 .day-summary {
